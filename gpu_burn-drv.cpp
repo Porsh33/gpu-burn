@@ -44,6 +44,7 @@
 #include <errno.h>
 #include <exception>
 #include <fstream>
+#include <libgen.h> // dirname
 #include <map>
 #include <signal.h>
 #include <stdexcept>
@@ -56,6 +57,7 @@
 #include <time.h>
 #include <unistd.h>
 #include <vector>
+#include <linux/limits.h> // PATH_MAX
 #include <regex>
 
 #define SIGTERM_TIMEOUT_THRESHOLD_SECS 30 // number of seconds for sigterm to kill child processes before forcing a sigkill
@@ -805,7 +807,10 @@ int main(int argc, char **argv) {
     int thisParam = 0;
     ssize_t useBytes = 0; // 0 == use USEMEM% of free mem
     int device_id = -1;
-    char *kernelFile = (char *)COMPARE_KERNEL;
+    char result[PATH_MAX];
+    readlink("/proc/self/exe", result, PATH_MAX);
+    const char *path = strcat(dirname(result), "/");
+    char *kernelFile = strcat((char *)path, (char *)COMPARE_KERNEL);
     std::chrono::seconds sigterm_timeout_threshold_secs = std::chrono::seconds(SIGTERM_TIMEOUT_THRESHOLD_SECS);
 
     std::vector<std::string> args(argv, argv + argc);
